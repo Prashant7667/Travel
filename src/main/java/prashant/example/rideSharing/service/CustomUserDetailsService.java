@@ -21,18 +21,12 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        Driver driver = driverRepository.findAll().stream()
-                .filter(d -> d.getEmail().equals(email))
-                .findFirst().orElse(null);
-
+        Driver driver=driverRepository.findByEmail(email).orElse(null);
         if (driver != null) {
             return new UserDetailsImpl(driver.getEmail(), driver.getPassword());
         }
 
-        Passenger passenger = passengerRepository.findAll().stream()
-                .filter(p -> p.getEmail().equals(email))
-                .findFirst().orElse(null);
-
+       Passenger passenger=passengerRepository.findByEmail(email).orElse(null);
         if (passenger != null) {
             return new UserDetailsImpl(passenger.getEmail(), passenger.getPassword());
         }

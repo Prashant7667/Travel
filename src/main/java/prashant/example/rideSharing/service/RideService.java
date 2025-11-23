@@ -1,6 +1,8 @@
 package prashant.example.rideSharing.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import prashant.example.rideSharing.exception.ResourceNotFoundException;
 import prashant.example.rideSharing.model.Driver;
@@ -12,6 +14,7 @@ import prashant.example.rideSharing.repository.DriverRepository;
 import prashant.example.rideSharing.repository.PassengerRepository;
 import prashant.example.rideSharing.repository.RideRepository;
 
+import java.net.Authenticator;
 import java.util.List;
 
 @Service
@@ -26,13 +29,16 @@ public class RideService {
     @Autowired
     private PassengerRepository passengerRepository;
 
-    public Ride createRide(Long passengerId, String startLocation, String endLocation, Double fare) {
+    @Autowired
+    private DriverService driverService;
 
-        Passenger passenger = passengerRepository.findById(passengerId)
-                .orElseThrow(() -> new ResourceNotFoundException("Passenger not found with id: " + passengerId));
+    public Ride createRide( double startLocation, double endLocation, Double fare) {
+        Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
+        String email=authentication.getName();
+        Passenger passenger = passengerRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Passenger not found with email: " + email));
 
-
-        Driver driver = driverRepository.findFirstByAvailabilityStatus(AvailabilityStatus.AVAILABLE);
+        Driver driver=driverService.findNearestDriver(startLocation);
         if (driver == null) {
             throw new RuntimeException("No available drivers at the moment.");
         }

@@ -1,6 +1,5 @@
 package prashant.example.rideSharing.controller;
 
-import prashant.example.rideSharing.dto.DriverDTO;
 import prashant.example.rideSharing.model.Driver;
 import prashant.example.rideSharing.service.DriverService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,50 +12,46 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/drivers")
 public class DriverController {
-
     @Autowired
     private DriverService driverService;
-
     @PostMapping
-    public DriverDTO createDriver(@Valid @RequestBody DriverDTO driverDTO) {
+    public  Driver createDriver(@Valid @RequestBody Driver driver) {
         Driver driverEntity = new Driver();
-        driverEntity.setName(driverDTO.getName());
-        driverEntity.setEmail(driverDTO.getEmail());
-        driverEntity.setPassword(driverDTO.getPassword());
-        driverEntity.setPhoneNumber(driverDTO.getPhoneNumber());
-        driverEntity.setVehicleDetails(driverDTO.getVehicleDetails());
-        if (driverDTO.getAvailabilityStatus() != null) {
-            driverEntity.setAvailabilityStatus(Driver.AvailabilityStatus.valueOf(driverDTO.getAvailabilityStatus()));
+        driverEntity.setName(driver.getName());
+        driverEntity.setEmail(driver.getEmail());
+        driverEntity.setPassword(driver.getPassword());
+        driverEntity.setPhoneNumber(driver.getPhoneNumber());
+        driverEntity.setVehicleDetails(driver.getVehicleDetails());
+        if (driver.getAvailabilityStatus() != null) {
+            driverEntity.setAvailabilityStatus(Driver.AvailabilityStatus.valueOf(String.valueOf(driver.getAvailabilityStatus())));
         }
-        Driver savedDriver = driverService.createDriver(driverEntity);
-        return convertEntityToDTO(savedDriver);
+        return driverService.createDriver(driverEntity);
+        //return convertEntityToDTO(savedDriver);
     }
     @GetMapping
-    public List<DriverDTO> getAllDrivers() {
+    public List<Driver> getAllDrivers() {
         return driverService.getAllDrivers()
                 .stream()
-                .map(this::convertEntityToDTO)
                 .collect(Collectors.toList());
     }
     @GetMapping("/{id}")
-    public DriverDTO getDriverById(@PathVariable Long id) {
-        Driver driver = driverService.getDriverById(id);
-        return convertEntityToDTO(driver);
+    public Driver getDriverById(@PathVariable Long id) {
+        return driverService.getDriverById(id);
+        //return convertEntityToDTO(driver);
     }
     @PutMapping("/{id}")
-    public DriverDTO updateDriver(@PathVariable Long id, @Valid @RequestBody DriverDTO driverDTO) {
+    public Driver updateDriver(@PathVariable Long id, @Valid @RequestBody Driver driver) {
         Driver updatedEntity = new Driver();
-        updatedEntity.setName(driverDTO.getName());
-        updatedEntity.setEmail(driverDTO.getEmail());
-        updatedEntity.setPassword(driverDTO.getPassword());
-        updatedEntity.setPhoneNumber(driverDTO.getPhoneNumber());
-        updatedEntity.setVehicleDetails(driverDTO.getVehicleDetails());
-        if (driverDTO.getAvailabilityStatus() != null) {
-            updatedEntity.setAvailabilityStatus(Driver.AvailabilityStatus.valueOf(driverDTO.getAvailabilityStatus()));
+        updatedEntity.setName(driver.getName());
+        updatedEntity.setEmail(driver.getEmail());
+        updatedEntity.setPassword(driver.getPassword());
+        updatedEntity.setPhoneNumber(driver.getPhoneNumber());
+        updatedEntity.setVehicleDetails(driver.getVehicleDetails());
+        if (driver.getAvailabilityStatus() != null) {
+            updatedEntity.setAvailabilityStatus(Driver.AvailabilityStatus.valueOf(String.valueOf(driver.getAvailabilityStatus())));
         }
 
-        Driver savedDriver = driverService.updateDriver(id, updatedEntity);
-        return convertEntityToDTO(savedDriver);
+        return  driverService.updateDriver(id, updatedEntity);
     }
     @DeleteMapping("/{id}")
     public void deleteDriver(@PathVariable Long id) {
@@ -64,23 +59,12 @@ public class DriverController {
     }
 
     @PatchMapping("/{id}/availability")
-    public DriverDTO updateDriverAvailability(@PathVariable Long id,
+    public Driver updateDriverAvailability(@PathVariable Long id,
                                               @RequestParam String status) {
         Driver.AvailabilityStatus availabilityStatus = Driver.AvailabilityStatus.valueOf(status);
-        Driver updatedDriver = driverService.updateDriverAvailability(id, availabilityStatus);
-        return convertEntityToDTO(updatedDriver);
+        return driverService.updateDriverAvailability(id, availabilityStatus);
+
     }
-    private DriverDTO convertEntityToDTO(Driver driver) {
-        DriverDTO dto = new DriverDTO();
-        dto.setId(driver.getId());
-        dto.setName(driver.getName());
-        dto.setEmail(driver.getEmail());
-        dto.setPassword(driver.getPassword());
-        dto.setPhoneNumber(driver.getPhoneNumber());
-        dto.setVehicleDetails(driver.getVehicleDetails());
-        if (driver.getAvailabilityStatus() != null) {
-            dto.setAvailabilityStatus(driver.getAvailabilityStatus().name());
-        }
-        return dto;
-    }
+
+
 }

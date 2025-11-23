@@ -59,4 +59,19 @@ public class DriverService {
         driver.setAvailabilityStatus(status);
         return driverRepository.save(driver);
     }
+    public Driver findNearestDriver(double startLocation){
+        List<Driver>allDrivers=getAllDrivers();
+        Driver nearest=null;
+        double nearLoc=Double.MAX_VALUE;
+        for(Driver d: allDrivers){
+            if(d.getAvailabilityStatus()== Driver.AvailabilityStatus.AVAILABLE){
+                double loc=Math.abs(startLocation-d.getLocation());
+                if(loc<nearLoc){
+                    nearLoc=loc;
+                    nearest=d;
+                }
+            }
+        }
+        return nearest;
+    }
 }

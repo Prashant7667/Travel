@@ -14,8 +14,8 @@ public class Ride {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String startLocation;
-    private String endLocation;
+    private double startLocation;
+    private double endLocation;
 
     @Enumerated(EnumType.STRING)
     private RideStatus status = RideStatus.REQUESTED;

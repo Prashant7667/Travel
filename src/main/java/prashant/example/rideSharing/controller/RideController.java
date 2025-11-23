@@ -1,11 +1,8 @@
 package prashant.example.rideSharing.controller;
-
-import prashant.example.rideSharing.dto.RideDTO;
 import prashant.example.rideSharing.model.Ride;
 import prashant.example.rideSharing.service.RideService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,66 +14,49 @@ public class RideController {
     @Autowired
     private RideService rideService;
     @PostMapping
-    public RideDTO createRide(@Valid @RequestBody RideDTO rideDTO) {
+    public Ride createRide(@Valid @RequestBody Ride ride) {
         Ride savedRide = rideService.createRide(
-                rideDTO.getPassengerId(),
-                rideDTO.getStartLocation(),
-                rideDTO.getEndLocation(),
-                rideDTO.getFare()
+                ride.getStartLocation(),
+                ride.getEndLocation(),
+                ride.getFare()
         );
-        return convertEntityToDTO(savedRide);
+        return savedRide;
     }
 
     @GetMapping
-    public List<RideDTO> getAllRides() {
+    public List<Ride> getAllRides() {
         return rideService.getAllRides()
                 .stream()
-                .map(this::convertEntityToDTO)
                 .collect(Collectors.toList());
     }
-
     @GetMapping("/{id}")
-    public RideDTO getRideById(@PathVariable Long id) {
+    public Ride getRideById(@PathVariable Long id) {
         Ride ride = rideService.getRideById(id);
-        return convertEntityToDTO(ride);
+        return ride;
     }
     @PutMapping("/{id}")
-    public RideDTO updateRide(@PathVariable Long id, @Valid @RequestBody RideDTO rideDTO) {
+    public Ride updateRide(@PathVariable Long id, @Valid @RequestBody Ride ride) {
         Ride updatedEntity = new Ride();
-        updatedEntity.setStartLocation(rideDTO.getStartLocation());
-        updatedEntity.setEndLocation(rideDTO.getEndLocation());
-        if (rideDTO.getStatus() != null) {
-            updatedEntity.setStatus(Ride.RideStatus.valueOf(rideDTO.getStatus().toUpperCase()));
+        updatedEntity.setStartLocation(ride.getStartLocation());
+        updatedEntity.setEndLocation(ride.getEndLocation());
+        if (ride.getStatus() != null) {
+            updatedEntity.setStatus(Ride.RideStatus.valueOf(String.valueOf(ride.getStatus())));
         }
 
-        updatedEntity.setFare(rideDTO.getFare());
+        updatedEntity.setFare(ride.getFare());
 
         Ride savedRide = rideService.updateRide(id, updatedEntity);
-        return convertEntityToDTO(savedRide);
+        return savedRide;
     }
     @DeleteMapping("/{id}")
     public void deleteRide(@PathVariable Long id) {
         rideService.deleteRide(id);
     }
     @PatchMapping("/{id}/status")
-    public RideDTO updateRideStatus(@PathVariable Long id, @RequestParam String status) {
+    public Ride updateRideStatus(@PathVariable Long id, @RequestParam String status) {
         Ride.RideStatus newStatus = Ride.RideStatus.valueOf(status.toUpperCase());
         Ride updatedRide = rideService.updateRideStatus(id, newStatus);
-        return convertEntityToDTO(updatedRide);
+        return updatedRide;
     }
-    private RideDTO convertEntityToDTO(Ride ride) {
-        RideDTO dto = new RideDTO();
-        dto.setId(ride.getId());
-        dto.setStartLocation(ride.getStartLocation());
-        dto.setEndLocation(ride.getEndLocation());
-        dto.setStatus(ride.getStatus().name());
-        dto.setFare(ride.getFare());
-        if (ride.getDriver() != null) {
-            dto.setDriverId(ride.getDriver().getId());
-        }
-        if (ride.getPassenger() != null) {
-            dto.setPassengerId(ride.getPassenger().getId());
-        }
-        return dto;
-    }
+
 }

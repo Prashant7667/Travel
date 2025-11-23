@@ -1,4 +1,4 @@
-package prashant.example.rideSharing.dto;
+package prashant.example.rideSharing.controller;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-
-public class LoginRequestDTO {
+public class LoginRequest {
     private String email;
     private String password;
+
 }
