@@ -31,7 +31,9 @@ public class Ride {
     private Passenger passenger;
     public enum RideStatus {
         REQUESTED,
-        ONGOING,
-        COMPLETED
+        ACCEPTED,
+        IN_PROGRESS,
+        COMPLETED,
+        CANCELLED
     }
 }

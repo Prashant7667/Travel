@@ -1,5 +1,6 @@
 package prashant.example.rideSharing.controller;
 import prashant.example.rideSharing.model.Ride;
+import prashant.example.rideSharing.model.RideAction;
 import prashant.example.rideSharing.service.RideService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -13,15 +14,46 @@ public class RideController {
 
     @Autowired
     private RideService rideService;
-    @PostMapping
-    public Ride createRide(@Valid @RequestBody Ride ride) {
-        Ride savedRide = rideService.createRide(
-                ride.getStartLocation(),
-                ride.getEndLocation(),
-                ride.getFare()
+    @PostMapping("/request")
+    public Ride RequestRide(@Valid @RequestBody Ride req){
+        return rideService.requestRide(
+                req.getStartLocation(),
+                req.getEndLocation(),
+                req.getFare()
         );
-        return savedRide;
     }
+
+    @PostMapping("/{rideId}/accept")
+    public Ride AcceptRide(@PathVariable Long rideId,@RequestParam Long driverId){
+        return rideService.handleRideAction(rideId,driverId, RideAction.DRIVER_ACCEPT);
+    }
+    @PostMapping("/{rideId}/reject")
+    public Ride RejectRide(@PathVariable Long rideId,@RequestParam Long driverId){
+        return rideService.handleRideAction(rideId,driverId,RideAction.DRIVER_REJECT);
+    }
+    @PostMapping("/{rideId}/start")
+    public Ride StartRide(@PathVariable Long rideId,@RequestParam Long driverId){
+        return rideService.handleRideAction(rideId,driverId, RideAction.START_RIDE);
+    }
+    @PostMapping("/{rideId}/complete")
+    public Ride CompleteRide(@PathVariable Long rideId,@RequestParam Long driverId){
+        return rideService.handleRideAction(rideId,driverId,RideAction.COMPLETE_RIDE);
+    }
+    @PostMapping("/{rideId}/cancel")
+    public Ride CancelRide(@PathVariable Long rideId,@RequestParam Long driverId){
+        return rideService.handleRideAction(rideId,driverId,RideAction.CANCEL_RIDE);
+    }
+
+
+//    @PostMapping
+//    public Ride createRide(@Valid @RequestBody Ride ride) {
+//        Ride savedRide = rideService.createRide(
+//                ride.getStartLocation(),
+//                ride.getEndLocation(),
+//                ride.getFare()
+//        );
+//        return savedRide;
+//    }
 
     @GetMapping
     public List<Ride> getAllRides() {
