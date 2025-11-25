@@ -22,6 +22,7 @@ public class DriverController {
         driverEntity.setPassword(driver.getPassword());
         driverEntity.setPhoneNumber(driver.getPhoneNumber());
         driverEntity.setVehicleDetails(driver.getVehicleDetails());
+        driverEntity.setLocation(driver.getLocation());
         if (driver.getAvailabilityStatus() != null) {
             driverEntity.setAvailabilityStatus(Driver.AvailabilityStatus.valueOf(String.valueOf(driver.getAvailabilityStatus())));
         }
