@@ -44,17 +44,6 @@ public class RideController {
         return rideService.handleRideAction(rideId,driverId,RideAction.CANCEL_RIDE);
     }
 
-
-//    @PostMapping
-//    public Ride createRide(@Valid @RequestBody Ride ride) {
-//        Ride savedRide = rideService.createRide(
-//                ride.getStartLocation(),
-//                ride.getEndLocation(),
-//                ride.getFare()
-//        );
-//        return savedRide;
-//    }
-
     @GetMapping
     public List<Ride> getAllRides() {
         return rideService.getAllRides()
@@ -84,11 +73,4 @@ public class RideController {
     public void deleteRide(@PathVariable Long id) {
         rideService.deleteRide(id);
     }
-    @PatchMapping("/{id}/status")
-    public Ride updateRideStatus(@PathVariable Long id, @RequestParam String status) {
-        Ride.RideStatus newStatus = Ride.RideStatus.valueOf(status.toUpperCase());
-        Ride updatedRide = rideService.updateRideStatus(id, newStatus);
-        return updatedRide;
-    }
-
 }
