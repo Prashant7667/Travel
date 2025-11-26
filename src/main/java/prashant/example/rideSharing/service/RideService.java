@@ -34,20 +34,22 @@ public class RideService {
     @Autowired
     private DriverService driverService;
 
-    public Ride requestRide(double  startLocation, double  endLocation, Double fare){
+    public Ride requestRide(double  startLongitude, double startLatitude,double  endLongitude, double endLatitude, Double fare){
         Authentication authentication=SecurityContextHolder.getContext().getAuthentication();
         String email=authentication.getName();
         Passenger passenger=passengerRepository.findByEmail(email)
                 .orElseThrow(()->new ResourceNotFoundException("Passenger not found with email: "+email));
-        Driver driver=driverService.findNearestDriver(startLocation);
+        Driver driver=driverService.findNearestDriver(startLongitude,startLatitude);
         if(driver==null){
             throw new RuntimeException("No available drivers at the moment.");
         }
         Ride ride=new Ride();
         ride.setPassenger(passenger);
         ride.setDriver(driver);
-        ride.setStartLocation(startLocation);
-        ride.setEndLocation(endLocation);
+        ride.setStartLongitude(startLongitude);
+        ride.setStartLatitude(startLatitude);
+        ride.setEndLongitude(endLongitude);
+        ride.setEndLatitude(endLatitude);
         ride.setFare(fare);
         ride.setStatus(RideStatus.REQUESTED);
         return rideRepository.save(ride);

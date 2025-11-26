@@ -22,7 +22,8 @@ public class DriverController {
         driverEntity.setPassword(driver.getPassword());
         driverEntity.setPhoneNumber(driver.getPhoneNumber());
         driverEntity.setVehicleDetails(driver.getVehicleDetails());
-        driverEntity.setLocation(driver.getLocation());
+        driverEntity.setLongitude(driver.getLongitude());
+        driverEntity.setLatitude(driver.getLatitude());
         if (driver.getAvailabilityStatus() != null) {
             driverEntity.setAvailabilityStatus(Driver.AvailabilityStatus.valueOf(String.valueOf(driver.getAvailabilityStatus())));
         }
@@ -48,6 +49,8 @@ public class DriverController {
         updatedEntity.setPassword(driver.getPassword());
         updatedEntity.setPhoneNumber(driver.getPhoneNumber());
         updatedEntity.setVehicleDetails(driver.getVehicleDetails());
+        updatedEntity.setLatitude(driver.getLatitude());
+        updatedEntity.setLongitude(driver.getLongitude());
         if (driver.getAvailabilityStatus() != null) {
             updatedEntity.setAvailabilityStatus(Driver.AvailabilityStatus.valueOf(String.valueOf(driver.getAvailabilityStatus())));
         }

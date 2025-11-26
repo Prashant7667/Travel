@@ -19,7 +19,8 @@ public class Driver {
     private String password;
     private String phoneNumber;
     private String vehicleDetails;
-    private Double location;
+    private Double latitude;
+    private Double longitude;
 
     @Enumerated(EnumType.STRING)
     private AvailabilityStatus availabilityStatus = AvailabilityStatus.UNAVAILABLE;

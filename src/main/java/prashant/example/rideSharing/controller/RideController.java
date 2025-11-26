@@ -17,8 +17,10 @@ public class RideController {
     @PostMapping("/request")
     public Ride RequestRide(@Valid @RequestBody Ride req){
         return rideService.requestRide(
-                req.getStartLocation(),
-                req.getEndLocation(),
+                req.getStartLongitude(),
+                req.getStartLatitude(),
+                req.getEndLongitude(),
+                req.getEndLatitude(),
                 req.getFare()
         );
     }

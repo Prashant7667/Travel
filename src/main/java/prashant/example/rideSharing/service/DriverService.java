@@ -59,17 +59,29 @@ public class DriverService {
         driver.setAvailabilityStatus(status);
         return driverRepository.save(driver);
     }
-    public Driver findNearestDriver(double startLocation){
+
+    private double haversine(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371; // km
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c; // distance in km
+    }
+
+    public Driver findNearestDriver(double startLongitude, double startLatitude){
         List<Driver>allDrivers=getAllDrivers();
         Driver nearest=null;
         double nearLoc=Double.MAX_VALUE;
-        for(Driver d: allDrivers){
-            if(d.getAvailabilityStatus()== Driver.AvailabilityStatus.AVAILABLE){
-                double loc=Math.abs(startLocation-d.getLocation());
-                if(loc<nearLoc){
-                    nearLoc=loc;
-                    nearest=d;
-                }
+        for(Driver driver:allDrivers){
+            double dist=haversine(startLatitude,startLongitude,driver.getLatitude(),driver.getLongitude());
+            if(dist<nearLoc){
+                dist=nearLoc;
+                nearest=driver;
             }
         }
         return nearest;
