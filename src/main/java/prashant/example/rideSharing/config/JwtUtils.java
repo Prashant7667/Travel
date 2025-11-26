@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.Map;
 
 @Component
 public class JwtUtils {
@@ -21,9 +22,10 @@ public class JwtUtils {
     /**
      * Generate a JWT token with the user's email as the subject.
      */
-    public String generateToken(String email) {
+    public String generateToken(String email, String role) {
         return Jwts.builder()
                 .setSubject(email)
+                .addClaims(Map.of("Role",role))
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(jwtSecret)
@@ -34,18 +36,29 @@ public class JwtUtils {
      * Validate the token's signature and expiration.
      * Return the email (subject) if valid, or throw an exception if invalid.
      */
+    private Claims parseClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(jwtSecret)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
     public String validateTokenAndGetEmail(String token) {
         try {
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(jwtSecret)
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-
+            Claims claims = parseClaims(token);
             return claims.getSubject(); // The email we stored in .setSubject()
         } catch (JwtException ex) {
             // Could be ExpiredJwtException, MalformedJwtException, etc.
             throw new RuntimeException("Invalid or expired JWT token");
         }
+    }
+    public String getRoleFromToken(String token){
+        try{
+            Claims claims=parseClaims(token);
+            return claims.get("role",String.class);
+        }catch (JwtException ex){
+            throw new RuntimeException("Invalid or expired JWT Token");
+        }
+
     }
 }

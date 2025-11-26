@@ -60,8 +60,10 @@ public class RideController {
     @PutMapping("/{id}")
     public Ride updateRide(@PathVariable Long id, @Valid @RequestBody Ride ride) {
         Ride updatedEntity = new Ride();
-        updatedEntity.setStartLocation(ride.getStartLocation());
-        updatedEntity.setEndLocation(ride.getEndLocation());
+        updatedEntity.setStartLongitude(ride.getStartLongitude());
+        updatedEntity.setStartLatitude(ride.getStartLatitude());
+        updatedEntity.setEndLatitude(ride.getEndLatitude());
+        updatedEntity.setEndLongitude(ride.getEndLongitude());
         if (ride.getStatus() != null) {
             updatedEntity.setStatus(Ride.RideStatus.valueOf(String.valueOf(ride.getStatus())));
         }

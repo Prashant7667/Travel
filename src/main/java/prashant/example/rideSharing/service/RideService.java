@@ -1,5 +1,4 @@
 package prashant.example.rideSharing.service;
-
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -118,10 +117,10 @@ public class RideService {
     }
     public Ride updateRide(Long id, Ride updatedData) {
         Ride existingRide = getRideById(id);
-
-        existingRide.setStartLocation(updatedData.getStartLocation());
-        existingRide.setEndLocation(updatedData.getEndLocation());
-
+        existingRide.setStartLongitude(updatedData.getStartLongitude());
+        existingRide.setStartLatitude(updatedData.getStartLatitude());
+        existingRide.setEndLatitude(updatedData.getEndLatitude());
+        existingRide.setEndLongitude(updatedData.getEndLongitude());
         if (updatedData.getStatus() != null) {
             existingRide.setStatus(updatedData.getStatus());
         }
