@@ -21,6 +21,8 @@ public class Driver {
     private String vehicleDetails;
     private Double latitude;
     private Double longitude;
+    private Double AvgRating=0.0;
+    private Double TotalRating=0.0;
 
     @Enumerated(EnumType.STRING)
     private AvailabilityStatus availabilityStatus = AvailabilityStatus.UNAVAILABLE;
