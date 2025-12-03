@@ -80,7 +80,7 @@ public class DriverService {
         for(Driver driver:allDrivers){
             double dist=haversine(startLatitude,startLongitude,driver.getLatitude(),driver.getLongitude());
             if(dist<nearLoc){
-                dist=nearLoc;
+                nearLoc=dist;
                 nearest=driver;
             }
         }

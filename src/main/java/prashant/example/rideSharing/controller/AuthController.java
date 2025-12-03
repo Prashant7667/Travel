@@ -45,7 +45,6 @@ public class AuthController {
 
     @PostMapping("/login")
     public String login(@RequestBody LoginRequest loginRequest) {
-
         var authToken = new UsernamePasswordAuthenticationToken(
                 loginRequest.getEmail(), loginRequest.getPassword()
         );
