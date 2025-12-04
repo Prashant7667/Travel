@@ -16,9 +16,15 @@ public class Rating {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long rideId;
-    private Long driverId;
-    private Long passengerId;
+    @ManyToOne
+    @JoinColumn(name="ride_id")
+    private Ride ride;
+    @ManyToOne
+    @JoinColumn(name="driver_id")
+    private Driver driver;
+    @ManyToOne
+    @JoinColumn(name="passenger_id")
+    private Passenger passenger;
     private int stars;
     private String comment;
     private LocalDateTime ratedAt=LocalDateTime.now();

@@ -1,5 +1,6 @@
 package prashant.example.rideSharing.service;
 
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,34 +25,39 @@ public class RatingService {
     private RideRepository rideRepository;
     public Rating submitRating(Long rideId, Long driverId,int stars, String comment){
         Ride ride=rideRepository.findById(rideId).orElseThrow(()->new RuntimeException("Ride Not found"));
-        if(!ride.getStatus().equals("Completed")){
+        Driver driver=driverRepository.findById(driverId).orElseThrow(()-> new RuntimeException("Driver Not found"));
+        if(!ride.getStatus().equals(Ride.RideStatus.COMPLETED)){
             throw new IllegalStateException("At this stage ride can't be rated");
         }
-//        if(ratingRepository.existByRideId(rideId)){
-//            throw new IllegalStateException("Already rated");
-//        }
+        if(ratingRepository.existsByRideId(rideId)){
+            throw new IllegalStateException("Already rated");
+        }
         Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl user=(UserDetailsImpl) authentication.getPrincipal();
         Passenger passenger=passengerRepository.findByEmail(user.getUsername()).orElseThrow(()->new RuntimeException("User Not found"));
-        if(!ride.getPassenger().equals(passenger.getId())){
+        if(!ride.getDriver().getId().equals(driverId)){
+            throw new IllegalStateException("This Driver is not the correct one");
+        }
+        if(!ride.getPassenger().getId().equals(passenger.getId())){
             throw new IllegalStateException("This Passenger is not authorised to perform this request");
         }
 
 
         Rating rideRating=new Rating();
-        rideRating.setPassengerId(passenger.getId());
-        rideRating.setRideId(rideId);
-        rideRating.setDriverId(driverId);
+        rideRating.setPassenger(passenger);
+        rideRating.setRide(ride);
+        rideRating.setDriver(driver);
         rideRating.setStars(stars);
         rideRating.setComment(comment);
         updateDriverRating(driverId,stars);
         return ratingRepository.save(rideRating);
     }
+    @Transactional
     private void updateDriverRating(Long driverId,int stars){
         Driver driver=driverRepository.findById(driverId).orElseThrow(()->new RuntimeException("Driver Not Found"));
         double total=driver.getAvgRating()* driver.getTotalRating();
         total+=stars;
-        driver.setTotalRating(driver.getTotalRating()+stars);
+        driver.setTotalRating(driver.getTotalRating()+1);
         driver.setAvgRating(total/(driver.getTotalRating()));
         driverRepository.save(driver);
     }

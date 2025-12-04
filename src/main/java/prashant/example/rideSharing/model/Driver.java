@@ -22,7 +22,7 @@ public class Driver {
     private Double latitude;
     private Double longitude;
     private Double AvgRating=0.0;
-    private Double TotalRating=0.0;
+    private Long TotalRating=0L;
 
     @Enumerated(EnumType.STRING)
     private AvailabilityStatus availabilityStatus = AvailabilityStatus.UNAVAILABLE;
