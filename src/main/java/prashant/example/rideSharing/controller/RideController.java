@@ -73,6 +73,10 @@ public class RideController {
         Ride savedRide = rideService.updateRide(id, updatedEntity);
         return savedRide;
     }
+    @GetMapping("/rideHistory")
+    public List<Ride>rideHistory(){
+        return rideService.getRideHistory();
+    }
     @DeleteMapping("/{id}")
     public void deleteRide(@PathVariable Long id) {
         rideService.deleteRide(id);

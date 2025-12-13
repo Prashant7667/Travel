@@ -168,9 +168,24 @@ public class RideService {
         rideRepository.delete(ride);
     }
 
-    public List<Ride> getPassengerRideHistory(Long passengerId) {
-        return rideRepository.findByPassengerId(passengerId);
+    public List<Ride> getRideHistory() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl user = (UserDetailsImpl) authentication.getPrincipal();
+
+        String email = user.getUsername();
+        String role = user.getRole();
+
+        if ("PASSENGER".equals(role)) {
+            return rideRepository.findByPassengerEmail(email);
+        }
+
+        if ("DRIVER".equals(role)) {
+            return rideRepository.findByDriverEmail(email);
+        }
+
+        return List.of();
     }
+
 
     public List<Ride> getDriverRideHistory(Long driverId) {
         return rideRepository.findByDriverId(driverId);

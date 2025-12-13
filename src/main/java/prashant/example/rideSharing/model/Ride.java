@@ -24,11 +24,11 @@ public class Ride {
 
     private Double fare;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="driver_id")
     private Driver driver;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="passenger_id")
     private Passenger passenger;
     public enum RideStatus {
