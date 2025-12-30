@@ -22,5 +22,7 @@ public class Passenger {
     private String email;
     private String password;
     private String phoneNumber;
+    private Double AvgRating=0.0;
+    private Long TotalRating=0L;
 
 }

@@ -13,52 +13,70 @@ import prashant.example.rideSharing.repository.DriverRepository;
 import prashant.example.rideSharing.repository.PassengerRepository;
 import prashant.example.rideSharing.repository.RatingRepository;
 import prashant.example.rideSharing.repository.RideRepository;
+
+import java.time.LocalDateTime;
+
 @Service
 public class RatingService {
-    @Autowired
-    private RatingRepository ratingRepository;
-    @Autowired
-    private DriverRepository driverRepository;
-    @Autowired
-    private PassengerRepository passengerRepository;
-    @Autowired
-    private RideRepository rideRepository;
-    public Rating submitDriverRating(Long rideId, Long driverId, int stars, String comment){
-        Ride ride=rideRepository.findById(rideId).orElseThrow(()->new RuntimeException("Ride Not found"));
-        Driver driver=driverRepository.findById(driverId).orElseThrow(()-> new RuntimeException("Driver Not found"));
-        Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
-        Rating.RatedBy ratedBy;
-        UserDetailsImpl user=(UserDetailsImpl) authentication.getPrincipal();
-        if(user.getRole().equals( Rating.RatedBy.DRIVER)){
-            ratedBy= Rating.RatedBy.DRIVER;
+    private final RatingRepository ratingRepository;
+    private final DriverRepository driverRepository;
+    private final PassengerRepository passengerRepository;
+    private final RideRepository rideRepository;
+    public RatingService(RatingRepository ratingRepository,DriverRepository driverRepository,PassengerRepository passengerRepository,RideRepository rideRepository){
+        this.ratingRepository=ratingRepository;
+        this.driverRepository=driverRepository;
+        this.passengerRepository=passengerRepository;
+        this.rideRepository=rideRepository;
+    }
+    @Transactional
+    public Rating submitRating(Long rideId, int stars, String comment){
+        if (stars < 1 || stars > 5) {
+            throw new IllegalArgumentException("Rating must be between 1 and 5");
         }
-        else ratedBy= Rating.RatedBy.PASSENGER;
+        Ride ride=rideRepository.findById(rideId).orElseThrow(()->new RuntimeException("Ride Not found"));
+        Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl user=(UserDetailsImpl) authentication.getPrincipal();
         if(!ride.getStatus().equals(Ride.RideStatus.COMPLETED)){
             throw new IllegalStateException("At this stage ride can't be rated");
         }
-        if(ratingRepository.existsByRideIdAndRatedBy(rideId,ratedBy)){
-            throw new IllegalStateException("Already rated By This User");
-        }
-        Passenger passenger=passengerRepository.findByEmail(user.getUsername()).orElseThrow(()->new RuntimeException("User Not found"));
-        if(!ride.getDriver().getId().equals(driverId)){
-            throw new IllegalStateException("This Driver is not the correct one");
-        }
-        if(!ride.getPassenger().getId().equals(passenger.getId())){
-            throw new IllegalStateException("This Passenger is not authorised to perform this request");
-        }
-
         Rating rideRating=new Rating();
-        rideRating.setPassenger(passenger);
-        rideRating.setRatedBy(ratedBy);
+        Rating.RatedBy ratedBy;
         rideRating.setRide(ride);
-        rideRating.setDriver(driver);
         rideRating.setStars(stars);
         rideRating.setComment(comment);
-        rideRating.setRatedBy(ratedBy);
-        updateDriverRating(driverId,stars);
+        rideRating.setRatedAt(LocalDateTime.now());
+        if(user.getRole().equals("DRIVER")){
+            ratedBy= Rating.RatedBy.DRIVER;
+            if(ratingRepository.existsByRideIdAndRatedBy(rideId,ratedBy)){
+                throw new IllegalStateException("Ride is already rated by this user");
+            }
+            Driver driver=driverRepository.findByEmail(user.getUsername()).orElseThrow(()->new IllegalArgumentException("driver not found"));
+            if(!driver.getId().equals(ride.getDriver().getId())){
+                throw new IllegalStateException("Not Your Ride");
+            }
+            Passenger passenger=ride.getPassenger();
+            updatePassengerRating(passenger.getId(),stars);
+            rideRating.setRatedBy(ratedBy);
+            rideRating.setPassenger(passenger);
+            rideRating.setDriver(driver);
+        }else{
+            ratedBy= Rating.RatedBy.PASSENGER;
+            if(ratingRepository.existsByRideIdAndRatedBy(rideId,ratedBy)){
+                throw new IllegalStateException("Ride is already rated by this user");
+            }
+            Passenger passenger=passengerRepository.findByEmail(user.getUsername()).orElseThrow(()->new IllegalArgumentException("passenger not found"));
+            if(!passenger.getId().equals(ride.getPassenger().getId())){
+                throw new IllegalStateException("Not Your Ride");
+            }
+            Driver driver=ride.getDriver();
+            updateDriverRating(driver.getId(),stars);
+
+            rideRating.setRatedBy(ratedBy);
+            rideRating.setPassenger(passenger);
+            rideRating.setDriver(driver);
+        }
         return ratingRepository.save(rideRating);
     }
-    @Transactional
     private void updateDriverRating(Long driverId,int stars){
         Driver driver=driverRepository.findById(driverId).orElseThrow(()->new RuntimeException("Driver Not Found"));
         double total=driver.getAvgRating()* driver.getTotalRating();
@@ -66,5 +84,13 @@ public class RatingService {
         driver.setTotalRating(driver.getTotalRating()+1);
         driver.setAvgRating(total/(driver.getTotalRating()));
         driverRepository.save(driver);
+    }
+    private void updatePassengerRating(Long passengerId,int stars){
+        Passenger passenger=passengerRepository.findById(passengerId).orElseThrow(()->new RuntimeException("Passenger Not Found"));
+        double total=passenger.getAvgRating()* passenger.getTotalRating();
+        total+=stars;
+        passenger.setTotalRating(passenger.getTotalRating()+1);
+        passenger.setAvgRating(total/(passenger.getTotalRating()));
+        passengerRepository.save(passenger);
     }
 }

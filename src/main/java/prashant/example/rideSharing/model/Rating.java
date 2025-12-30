@@ -31,7 +31,7 @@ public class Rating {
     private Passenger passenger;
     private int stars;
     private String comment;
-    private LocalDateTime ratedAt=LocalDateTime.now();
+    private LocalDateTime ratedAt;
     public enum RatedBy{
         DRIVER,
         PASSENGER

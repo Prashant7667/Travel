@@ -11,8 +11,8 @@ public class RatingController {
     @Autowired
     private RatingService ratingService;
     @PostMapping("/driver/{rideId}")
-    public Rating submitRating (@PathVariable Long rideId, @RequestParam Long driverId,@RequestParam int star, @RequestParam String comment){
-        return ratingService.submitDriverRating(rideId,driverId,star, comment);
+    public Rating submitRating (@PathVariable Long rideId, @RequestParam int star, @RequestParam(required = false) String comment){
+        return ratingService.submitRating(rideId,star, comment);
     }
 
 }
