@@ -23,17 +23,22 @@ public class RatingService {
     private PassengerRepository passengerRepository;
     @Autowired
     private RideRepository rideRepository;
-    public Rating submitRating(Long rideId, Long driverId,int stars, String comment){
+    public Rating submitDriverRating(Long rideId, Long driverId, int stars, String comment){
         Ride ride=rideRepository.findById(rideId).orElseThrow(()->new RuntimeException("Ride Not found"));
         Driver driver=driverRepository.findById(driverId).orElseThrow(()-> new RuntimeException("Driver Not found"));
+        Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
+        Rating.RatedBy ratedBy;
+        UserDetailsImpl user=(UserDetailsImpl) authentication.getPrincipal();
+        if(user.getRole().equals( Rating.RatedBy.DRIVER)){
+            ratedBy= Rating.RatedBy.DRIVER;
+        }
+        else ratedBy= Rating.RatedBy.PASSENGER;
         if(!ride.getStatus().equals(Ride.RideStatus.COMPLETED)){
             throw new IllegalStateException("At this stage ride can't be rated");
         }
-        if(ratingRepository.existsByRideId(rideId)){
-            throw new IllegalStateException("Already rated");
+        if(ratingRepository.existsByRideIdAndRatedBy(rideId,ratedBy)){
+            throw new IllegalStateException("Already rated By This User");
         }
-        Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
-        UserDetailsImpl user=(UserDetailsImpl) authentication.getPrincipal();
         Passenger passenger=passengerRepository.findByEmail(user.getUsername()).orElseThrow(()->new RuntimeException("User Not found"));
         if(!ride.getDriver().getId().equals(driverId)){
             throw new IllegalStateException("This Driver is not the correct one");
@@ -42,13 +47,14 @@ public class RatingService {
             throw new IllegalStateException("This Passenger is not authorised to perform this request");
         }
 
-
         Rating rideRating=new Rating();
         rideRating.setPassenger(passenger);
+        rideRating.setRatedBy(ratedBy);
         rideRating.setRide(ride);
         rideRating.setDriver(driver);
         rideRating.setStars(stars);
         rideRating.setComment(comment);
+        rideRating.setRatedBy(ratedBy);
         updateDriverRating(driverId,stars);
         return ratingRepository.save(rideRating);
     }

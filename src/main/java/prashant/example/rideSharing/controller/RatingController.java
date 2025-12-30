@@ -10,8 +10,9 @@ import prashant.example.rideSharing.service.RatingService;
 public class RatingController {
     @Autowired
     private RatingService ratingService;
-    @PostMapping("/submit/{rideId}")
+    @PostMapping("/driver/{rideId}")
     public Rating submitRating (@PathVariable Long rideId, @RequestParam Long driverId,@RequestParam int star, @RequestParam String comment){
-        return ratingService.submitRating(rideId,driverId,star, comment);
+        return ratingService.submitDriverRating(rideId,driverId,star, comment);
     }
+
 }

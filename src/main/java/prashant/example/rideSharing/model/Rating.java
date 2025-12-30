@@ -4,14 +4,18 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.security.core.parameters.P;
 
 import java.time.LocalDateTime;
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "ratings")
-
+@Table(name = "ratings",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"ride_id", "rated_by"})
+        }
+)
 public class Rating {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,4 +32,10 @@ public class Rating {
     private int stars;
     private String comment;
     private LocalDateTime ratedAt=LocalDateTime.now();
+    public enum RatedBy{
+        DRIVER,
+        PASSENGER
+    }
+    @Enumerated(EnumType.STRING)
+    private RatedBy ratedBy;
 }

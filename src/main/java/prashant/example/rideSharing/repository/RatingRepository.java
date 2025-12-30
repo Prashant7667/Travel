@@ -5,5 +5,6 @@ import org.springframework.stereotype.Repository;
 import prashant.example.rideSharing.model.Rating;
 @Repository
 public interface RatingRepository extends JpaRepository<Rating,Long> {
-    boolean existsByRideId(Long rideId);
+    boolean existsByRideIdAndRatedBy(Long rideId, Rating.RatedBy ratedBy);
+
 }
