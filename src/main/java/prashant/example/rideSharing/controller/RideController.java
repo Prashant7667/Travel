@@ -1,4 +1,6 @@
 package prashant.example.rideSharing.controller;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import prashant.example.rideSharing.model.Ride;
 import prashant.example.rideSharing.model.RideAction;
 import prashant.example.rideSharing.service.RideService;
@@ -15,50 +17,56 @@ public class RideController {
     @Autowired
     private RideService rideService;
     @PostMapping("/request")
-    public Ride RequestRide(@Valid @RequestBody Ride req){
-        return rideService.requestRide(
+    public ResponseEntity<Ride> RequestRide(@Valid @RequestBody Ride req){
+        Ride requestedRide= rideService.requestRide(
                 req.getStartLongitude(),
                 req.getStartLatitude(),
                 req.getEndLongitude(),
                 req.getEndLatitude(),
                 req.getFare()
         );
+        return ResponseEntity.status(HttpStatus.CREATED).body(requestedRide);
     }
 
     @PostMapping("/{rideId}/accept")
-    public Ride AcceptRide(@PathVariable Long rideId,@RequestParam Long driverId){
-        return rideService.handleRideAction(rideId,driverId, RideAction.DRIVER_ACCEPT);
+    public ResponseEntity<Ride> AcceptRide(@PathVariable Long rideId,@RequestParam Long driverId){
+        Ride acceptedRide= rideService.handleRideAction(rideId,driverId, RideAction.DRIVER_ACCEPT);
+        return ResponseEntity.ok(acceptedRide);
     }
     @PostMapping("/{rideId}/reject")
-    public Ride RejectRide(@PathVariable Long rideId,@RequestParam Long driverId){
-        return rideService.handleRideAction(rideId,driverId,RideAction.DRIVER_REJECT);
+    public ResponseEntity<Ride> RejectRide(@PathVariable Long rideId,@RequestParam Long driverId){
+        Ride rejectedRide= rideService.handleRideAction(rideId,driverId,RideAction.DRIVER_REJECT);
+        return ResponseEntity.ok(rejectedRide);
     }
     @PostMapping("/{rideId}/start")
-    public Ride StartRide(@PathVariable Long rideId,@RequestParam Long driverId){
-        return rideService.handleRideAction(rideId,driverId, RideAction.START_RIDE);
+    public ResponseEntity<Ride> StartRide(@PathVariable Long rideId,@RequestParam Long driverId){
+        Ride startRideData=rideService.handleRideAction(rideId,driverId, RideAction.START_RIDE);
+        return ResponseEntity.ok(startRideData);
     }
     @PostMapping("/{rideId}/complete")
-    public Ride CompleteRide(@PathVariable Long rideId,@RequestParam Long driverId){
-        return rideService.handleRideAction(rideId,driverId,RideAction.COMPLETE_RIDE);
+    public ResponseEntity<Ride> CompleteRide(@PathVariable Long rideId,@RequestParam Long driverId){
+        Ride completeRide= rideService.handleRideAction(rideId,driverId,RideAction.COMPLETE_RIDE);
+        return ResponseEntity.ok(completeRide);
     }
     @PostMapping("/{rideId}/cancel")
-    public Ride CancelRide(@PathVariable Long rideId,@RequestParam Long driverId){
-        return rideService.handleRideAction(rideId,driverId,RideAction.CANCEL_RIDE);
+    public ResponseEntity<Ride> CancelRide(@PathVariable Long rideId,@RequestParam Long driverId){
+         Ride cancelRide=rideService.handleRideAction(rideId,driverId,RideAction.CANCEL_RIDE);
+         return ResponseEntity.ok(cancelRide);
     }
 
     @GetMapping
-    public List<Ride> getAllRides() {
-        return rideService.getAllRides()
-                .stream()
-                .collect(Collectors.toList());
+    public ResponseEntity<List<Ride>> getAllRides() {
+        List<Ride>allRides= rideService.getAllRides();
+        return ResponseEntity.ok(allRides);
+
     }
     @GetMapping("/{id}")
-    public Ride getRideById(@PathVariable Long id) {
+    public ResponseEntity<Ride> getRideById(@PathVariable Long id) {
         Ride ride = rideService.getRideById(id);
-        return ride;
+        return ResponseEntity.ok(ride);
     }
     @PutMapping("/{id}")
-    public Ride updateRide(@PathVariable Long id, @Valid @RequestBody Ride ride) {
+    public ResponseEntity<Ride> updateRide(@PathVariable Long id, @Valid @RequestBody Ride ride) {
         Ride updatedEntity = new Ride();
         updatedEntity.setStartLongitude(ride.getStartLongitude());
         updatedEntity.setStartLatitude(ride.getStartLatitude());
@@ -71,14 +79,17 @@ public class RideController {
         updatedEntity.setFare(ride.getFare());
 
         Ride savedRide = rideService.updateRide(id, updatedEntity);
-        return savedRide;
+        return ResponseEntity.ok(savedRide);
     }
     @GetMapping("/rideHistory")
-    public List<Ride>rideHistory(){
-        return rideService.getRideHistory();
+    public ResponseEntity<List<Ride>>rideHistory(){
+        List<Ride>rides= rideService.getRideHistory();
+        return ResponseEntity.ok(rides);
     }
     @DeleteMapping("/{id}")
-    public void deleteRide(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteRide(@PathVariable Long id) {
+
         rideService.deleteRide(id);
+        return ResponseEntity.noContent().build();
     }
 }

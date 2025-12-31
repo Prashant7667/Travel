@@ -1,4 +1,5 @@
 package prashant.example.rideSharing.controller;
+import org.springframework.http.ResponseEntity;
 import prashant.example.rideSharing.model.Passenger;
 import prashant.example.rideSharing.service.PassengerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,18 +16,18 @@ public class PassengerController {
     @Autowired
     private PassengerService passengerService;
     @GetMapping
-    public List<Passenger> getAllPassengers() {
-        return passengerService.getAllPassengers()
-                .stream()
-                .collect(Collectors.toList());
+    public ResponseEntity<List<Passenger>> getAllPassengers() {
+        List<Passenger>savedPassengers= passengerService.getAllPassengers();
+        return ResponseEntity.ok(savedPassengers);
+
     }
     @GetMapping("/{id}")
-    public Passenger getPassengerById(@PathVariable Long id) {
+    public ResponseEntity<Passenger> getPassengerById(@PathVariable Long id) {
         Passenger passenger = passengerService.getPassengerById(id);
-        return passenger;
+        return ResponseEntity.ok(passenger);
     }
     @PutMapping("/{id}")
-    public Passenger updatePassenger(@PathVariable Long id, @Valid @RequestBody Passenger passengerDTO) {
+    public ResponseEntity<Passenger> updatePassenger(@PathVariable Long id, @Valid @RequestBody Passenger passengerDTO) {
         Passenger updatedEntity = new Passenger();
         updatedEntity.setName(passengerDTO.getName());
         updatedEntity.setEmail(passengerDTO.getEmail());
@@ -34,11 +35,12 @@ public class PassengerController {
         updatedEntity.setPhoneNumber(passengerDTO.getPhoneNumber());
 
         Passenger savedPassenger = passengerService.updatePassenger(id, updatedEntity);
-        return savedPassenger;
+        return ResponseEntity.ok(savedPassenger);
     }
     @DeleteMapping("/{id}")
-    public void deletePassenger(@PathVariable Long id) {
+    public ResponseEntity<Void> deletePassenger(@PathVariable Long id) {
         passengerService.deletePassenger(id);
+        return ResponseEntity.noContent().build();
     }
 
 }

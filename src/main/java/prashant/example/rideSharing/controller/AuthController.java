@@ -1,6 +1,9 @@
 package prashant.example.rideSharing.controller;
 
+import ch.qos.logback.core.joran.sanity.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -12,6 +15,8 @@ import prashant.example.rideSharing.model.Passenger;
 import prashant.example.rideSharing.repository.DriverRepository;
 import prashant.example.rideSharing.repository.PassengerRepository;
 import prashant.example.rideSharing.service.UserDetailsImpl;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -33,27 +38,28 @@ public class AuthController {
     private DriverRepository driverRepository;
 
     @PostMapping("/passenger/register")
-    public Passenger registerPassenger(@RequestBody Passenger passenger){
+    public ResponseEntity<Passenger>registerPassenger(@RequestBody Passenger passenger){
         passenger.setPassword(passwordEncoder.encode(passenger.getPassword()));
-        return passengerRepository.save(passenger);
+        Passenger savedPassenger=passengerRepository.save(passenger);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedPassenger);
+
     }
     @PostMapping("/driver/register")
-    public Driver registerDriver(@RequestBody Driver driver){
+    public ResponseEntity<Driver> registerDriver(@RequestBody Driver driver){
         driver.setPassword(passwordEncoder.encode(driver.getPassword()));
-        return driverRepository.save(driver);
+        Driver savedDriver=driverRepository.save(driver);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedDriver);
     }
 
     @PostMapping("/login")
-    public String login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
         var authToken = new UsernamePasswordAuthenticationToken(
                 loginRequest.getEmail(), loginRequest.getPassword()
         );
-
         Authentication authentication = authenticationManager.authenticate(authToken);
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
         String jwt = jwtUtils.generateToken(userDetails.getUsername(),userDetails.getRole());
-
-        return "Bearer " + jwt;
+        return ResponseEntity.ok(Map.of("token","Bearer: "+jwt,"role",userDetails.getRole()));
     }
 }
