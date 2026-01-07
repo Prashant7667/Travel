@@ -1,6 +1,7 @@
 package prashant.example.rideSharing.service;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -32,17 +33,11 @@ public class RideService {
 
     @Autowired
     private DriverService driverService;
-
+    @PreAuthorize("hasRole('PASSENGER')")
     public Ride requestRide(double  startLongitude, double startLatitude,double  endLongitude, double endLatitude, Double fare){
         Authentication authentication=SecurityContextHolder.getContext().getAuthentication();
         UserDetailsImpl user = (UserDetailsImpl) authentication.getPrincipal();
         String email=user.getUsername();
-        String role=user.getRole();
-        System.out.println(authentication);
-        if(!"PASSENGER".equalsIgnoreCase(role)){
-            throw new IllegalStateException("Only Passenger can request a ride");
-        }
-
         Passenger passenger=passengerRepository.findByEmail(email)
                 .orElseThrow(()->new ResourceNotFoundException("Passenger not found with email: "+email));
         Driver driver=driverService.findNearestDriver(startLongitude,startLatitude);
@@ -103,6 +98,7 @@ public class RideService {
                 ride.setStatus(RideStatus.COMPLETED);
                 driver.setAvailabilityStatus(AvailabilityStatus.AVAILABLE);
                 driverRepository.save(driver);
+                break;
             case CANCEL_RIDE:
                 if(ride.getStatus()==RideStatus.COMPLETED||ride.getStatus()==RideStatus.CANCELLED){
                     throw new IllegalStateException("Ride is already finished");

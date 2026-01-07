@@ -1,6 +1,8 @@
 package prashant.example.rideSharing.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;  // <-- Import this
 import org.springframework.stereotype.Service;
 import prashant.example.rideSharing.repository.DriverRepository;
@@ -24,38 +26,55 @@ public class DriverService {
         return driverRepository.save(driver);
     }
 
-    public Driver getDriverById(Long id) {
-        return driverRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Driver not found with id: " + id));
+    public Driver getDriverByEmail(String email) {
+        return driverRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Driver not found with email: " + email));
     }
 
     public List<Driver> getAllDrivers() {
         return driverRepository.findAll();
     }
 
-    public Driver updateDriver(Long id, Driver updatedData) {
-        Driver existingDriver = getDriverById(id);
+    public Driver updateDriver(Driver updatedData) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email= auth.getName();
+        Driver existingDriver = getDriverByEmail(email);
 
-        existingDriver.setName(updatedData.getName());
-        existingDriver.setEmail(updatedData.getEmail());
+        if (updatedData.getName() != null)
+            existingDriver.setName(updatedData.getName());
 
-        if (updatedData.getPassword() != null && !updatedData.getPassword().isBlank()) {
+        if (updatedData.getPassword() != null && !updatedData.getPassword().isBlank())
             existingDriver.setPassword(passwordEncoder.encode(updatedData.getPassword()));
-        }
-        existingDriver.setPhoneNumber(updatedData.getPhoneNumber());
-        existingDriver.setVehicleDetails(updatedData.getVehicleDetails());
-        existingDriver.setAvailabilityStatus(updatedData.getAvailabilityStatus());
+
+        if (updatedData.getPhoneNumber() != null)
+            existingDriver.setPhoneNumber(updatedData.getPhoneNumber());
+
+        if (updatedData.getVehicleDetails() != null)
+            existingDriver.setVehicleDetails(updatedData.getVehicleDetails());
+
+        if (updatedData.getAvailabilityStatus() != null)
+            existingDriver.setAvailabilityStatus(updatedData.getAvailabilityStatus());
+
+        if (updatedData.getLatitude() != null)
+            existingDriver.setLatitude(updatedData.getLatitude());
+
+        if (updatedData.getLongitude() != null)
+            existingDriver.setLongitude(updatedData.getLongitude());
 
         return driverRepository.save(existingDriver);
     }
 
-    public void deleteDriver(Long id) {
-        Driver driver = getDriverById(id);
+    public void deleteDriver() {
+        Authentication auth=SecurityContextHolder.getContext().getAuthentication();
+        String email=auth.getName();
+        Driver driver = getDriverByEmail(email);
         driverRepository.delete(driver);
     }
 
-    public Driver updateDriverAvailability(Long id, Driver.AvailabilityStatus status) {
-        Driver driver = getDriverById(id);
+    public Driver updateDriverAvailability(Driver.AvailabilityStatus status) {
+        Authentication auth=SecurityContextHolder.getContext().getAuthentication();
+        String email=auth.getName();
+        Driver driver = getDriverByEmail(email);
         driver.setAvailabilityStatus(status);
         return driverRepository.save(driver);
     }

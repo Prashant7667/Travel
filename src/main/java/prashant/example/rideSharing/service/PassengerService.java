@@ -33,7 +33,7 @@ public class PassengerService {
         Passenger existingPassenger = getPassengerById(id);
         existingPassenger.setName(updatedData.getName());
         existingPassenger.setEmail(updatedData.getEmail());
-        if(existingPassenger.getPassword()!=null && !existingPassenger.getPassword().isBlank()){
+        if(updatedData.getPassword()!=null && !updatedData.getPassword().isBlank()){
             existingPassenger.setPassword(passwordEncoder.encode(updatedData.getPassword()));
         }
 
