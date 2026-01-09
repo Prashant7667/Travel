@@ -1,4 +1,5 @@
 package prashant.example.rideSharing.model;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -20,9 +21,10 @@ public class Passenger {
     private String name;
     @Column(unique = true,nullable = false)
     private String email;
+    @JsonIgnore
     private String password;
     private String phoneNumber;
-    private Double AvgRating=0.0;
-    private Long TotalRating=0L;
+    private Double avgRating=0.0;
+    private Long totalRating=0L;
 
 }
