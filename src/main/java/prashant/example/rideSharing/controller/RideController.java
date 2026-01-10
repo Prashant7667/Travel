@@ -37,7 +37,7 @@ public class RideController {
     @PreAuthorize("hasRole('DRIVER')")
     @PostMapping("/{rideId}/accept")
     public ResponseEntity<Ride> acceptRide(@PathVariable Long rideId){
-        Ride acceptedRide= driverAssignmentService.handleRideAction(rideId, RideAction.DRIVER_ACCEPT);
+        Ride acceptedRide= driverAssignmentService.acceptRide(rideId);
         return ResponseEntity.ok(acceptedRide);
     }
     @PreAuthorize("hasRole('DRIVER')")

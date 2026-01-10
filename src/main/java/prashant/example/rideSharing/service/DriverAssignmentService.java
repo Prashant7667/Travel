@@ -25,6 +25,18 @@ public class DriverAssignmentService {
         this.rideQueryService=rideQueryService;
     }
     @Transactional
+    public Ride acceptRide(long rideId){
+        Authentication auth=SecurityContextHolder.getContext().getAuthentication();
+        Driver driver=driverService.getDriverByEmail(auth.getName());
+        int updated= rideRepository.acceptRide(rideId,driver);
+        if(updated==0){
+            throw new IllegalStateException("Ride Already Updated");
+        }
+        driver.setAvailabilityStatus(Driver.AvailabilityStatus.UNAVAILABLE);
+        driverRepository.save(driver);
+        return rideQueryService.getRideById(rideId);
+    }
+    @Transactional
     public Ride handleRideAction(long rideId, RideAction rideAction) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         Driver driver = driverRepository.findByEmail(auth.getName()).orElseThrow(() -> new ResourceNotFoundException("No Driver is found"));
@@ -36,14 +48,6 @@ public class DriverAssignmentService {
             throw new IllegalStateException("This driver is not assigned to this ride");
         }
         switch (rideAction) {
-            case DRIVER_ACCEPT:
-                if (ride.getStatus() != Ride.RideStatus.REQUESTED) {
-                    throw new IllegalStateException("Ride can only be accepted when status is requested");
-                }
-                ride.setStatus(Ride.RideStatus.ACCEPTED);
-                driver.setAvailabilityStatus(Driver.AvailabilityStatus.UNAVAILABLE);
-                driverRepository.save(driver);
-                break;
             case DRIVER_REJECT:
                 if (ride.getStatus() != Ride.RideStatus.REQUESTED) {
                     throw new IllegalStateException("Ride can only be rejected when status is requested");
