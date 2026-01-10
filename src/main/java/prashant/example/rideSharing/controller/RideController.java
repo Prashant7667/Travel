@@ -4,7 +4,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import prashant.example.rideSharing.model.Ride;
 import prashant.example.rideSharing.model.RideAction;
-import prashant.example.rideSharing.service.RideService;
+import prashant.example.rideSharing.service.DriverAssignmentService;
+import prashant.example.rideSharing.service.RideCommandService;
+import prashant.example.rideSharing.service.RideQueryService;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 import java.util.List;
@@ -12,14 +14,18 @@ import java.util.List;
 @RestController
 @RequestMapping("/rides")
 public class RideController {
-    private final RideService rideService;
-    RideController(RideService rideService){
-        this.rideService=rideService;
+    private final DriverAssignmentService driverAssignmentService;
+    private final RideQueryService rideQueryService;
+    private final RideCommandService rideCommandService;
+    RideController(DriverAssignmentService driverAssignmentService, RideQueryService rideQueryService, RideCommandService rideCommandService){
+        this.driverAssignmentService=driverAssignmentService;
+        this.rideQueryService=rideQueryService;
+        this.rideCommandService=rideCommandService;
     }
     @PreAuthorize("hasRole('PASSENGER')")
     @PostMapping("/request")
     public ResponseEntity<Ride> requestRide(@Valid @RequestBody Ride req){
-        Ride requestedRide= rideService.requestRide(
+        Ride requestedRide= rideCommandService.requestRide(
                 req.getStartLongitude(),
                 req.getStartLatitude(),
                 req.getEndLongitude(),
@@ -31,50 +37,50 @@ public class RideController {
     @PreAuthorize("hasRole('DRIVER')")
     @PostMapping("/{rideId}/accept")
     public ResponseEntity<Ride> acceptRide(@PathVariable Long rideId){
-        Ride acceptedRide= rideService.handleRideAction(rideId, RideAction.DRIVER_ACCEPT);
+        Ride acceptedRide= driverAssignmentService.handleRideAction(rideId, RideAction.DRIVER_ACCEPT);
         return ResponseEntity.ok(acceptedRide);
     }
     @PreAuthorize("hasRole('DRIVER')")
     @PostMapping("/{rideId}/reject")
     public ResponseEntity<Ride> rejectRide(@PathVariable Long rideId){
-        Ride rejectedRide= rideService.handleRideAction(rideId,RideAction.DRIVER_REJECT);
+        Ride rejectedRide= driverAssignmentService.handleRideAction(rideId,RideAction.DRIVER_REJECT);
         return ResponseEntity.ok(rejectedRide);
     }
     @PreAuthorize("hasRole('DRIVER')")
     @PostMapping("/{rideId}/start")
     public ResponseEntity<Ride> startRide(@PathVariable Long rideId){
-        Ride startRideData=rideService.handleRideAction(rideId,RideAction.START_RIDE);
+        Ride startRideData=driverAssignmentService.handleRideAction(rideId,RideAction.START_RIDE);
         return ResponseEntity.ok(startRideData);
     }
     @PreAuthorize("hasRole('DRIVER')")
     @PostMapping("/{rideId}/complete")
     public ResponseEntity<Ride> completeRide(@PathVariable Long rideId){
-        Ride completeRide= rideService.handleRideAction(rideId,RideAction.COMPLETE_RIDE);
+        Ride completeRide= driverAssignmentService.handleRideAction(rideId,RideAction.COMPLETE_RIDE);
         return ResponseEntity.ok(completeRide);
     }
     @PreAuthorize("hasRole('DRIVER')")
     @PostMapping("/{rideId}/cancel")
     public ResponseEntity<Ride> cancelRide(@PathVariable Long rideId){
-         Ride cancelRide=rideService.handleRideAction(rideId,RideAction.CANCEL_RIDE);
+         Ride cancelRide=driverAssignmentService.handleRideAction(rideId,RideAction.CANCEL_RIDE);
          return ResponseEntity.ok(cancelRide);
     }
     @PreAuthorize("hasRole('PASSENGER')")
     @PostMapping("/me/{rideId}/cancel")
     public ResponseEntity<Ride> cancelRideByPassenger(@PathVariable Long rideId){
-        Ride cancelRide=rideService.cancelRideByPassenger(rideId);
+        Ride cancelRide=rideCommandService.cancelRideByPassenger(rideId);
         return ResponseEntity.ok(cancelRide);
     }
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<Ride>> getAllRides() {
-        List<Ride>allRides= rideService.getAllRides();
+        List<Ride>allRides= rideQueryService.getAllRides();
         return ResponseEntity.ok(allRides);
 
     }
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<Ride> getRideById(@PathVariable Long id) {
-        Ride ride = rideService.getRideById(id);
+        Ride ride = rideQueryService.getRideById(id);
         return ResponseEntity.ok(ride);
     }
     @PreAuthorize("hasRole('ADMIN')")
@@ -91,26 +97,25 @@ public class RideController {
 
         updatedEntity.setFare(ride.getFare());
 
-        Ride savedRide = rideService.updateRide(id, updatedEntity);
+        Ride savedRide = rideCommandService.updateRide(id, updatedEntity);
         return ResponseEntity.ok(savedRide);
     }
     @PreAuthorize("hasRole('DRIVER')")
     @GetMapping("/me/driver/rideHistory")
     public ResponseEntity<List<Ride>>rideDriverHistory(){
-        List<Ride>rides= rideService.getDriverRideHistory();
+        List<Ride>rides= rideQueryService.getDriverRideHistory();
         return ResponseEntity.ok(rides);
     }
     @PreAuthorize("hasRole('PASSENGER')")
     @GetMapping("/me/passenger/rideHistory")
     public ResponseEntity<List<Ride>>ridePassengerHistory(){
-        List<Ride>rides= rideService.getPassengerRideHistory();
+        List<Ride>rides= rideQueryService.getPassengerRideHistory();
         return ResponseEntity.ok(rides);
     }
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRide(@PathVariable Long id) {
-
-        rideService.deleteRide(id);
+        rideCommandService.deleteRide(id);
         return ResponseEntity.noContent().build();
     }
 }
