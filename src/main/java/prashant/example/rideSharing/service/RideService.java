@@ -1,7 +1,5 @@
 package prashant.example.rideSharing.service;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -15,34 +13,29 @@ import prashant.example.rideSharing.model.RideAction;
 import prashant.example.rideSharing.repository.DriverRepository;
 import prashant.example.rideSharing.repository.PassengerRepository;
 import prashant.example.rideSharing.repository.RideRepository;
-
-import java.net.Authenticator;
 import java.util.List;
 
 @Service
 public class RideService {
+    private final RideRepository rideRepository;
+    private final DriverRepository driverRepository;
+    private final PassengerRepository passengerRepository;
+    private final DriverService driverService;
+    RideService(RideRepository rideRepository, DriverRepository driverRepository, PassengerRepository passengerRepository,DriverService driverService){
+        this.rideRepository=rideRepository;
+        this.driverRepository=driverRepository;
+        this.passengerRepository=passengerRepository;
+        this.driverService=driverService;
+    }
 
-    @Autowired
-    private RideRepository rideRepository;
-
-    @Autowired
-    private DriverRepository driverRepository;
-
-    @Autowired
-    private PassengerRepository passengerRepository;
-
-    @Autowired
-    private DriverService driverService;
-    @PreAuthorize("hasRole('PASSENGER')")
     public Ride requestRide(double  startLongitude, double startLatitude,double  endLongitude, double endLatitude, Double fare){
         Authentication authentication=SecurityContextHolder.getContext().getAuthentication();
-        UserDetailsImpl user = (UserDetailsImpl) authentication.getPrincipal();
-        String email=user.getUsername();
-        Passenger passenger=passengerRepository.findByEmail(email)
-                .orElseThrow(()->new ResourceNotFoundException("Passenger not found with email: "+email));
+        String passengerEmail=authentication.getName();
+        Passenger passenger=passengerRepository.findByEmail(passengerEmail)
+                .orElseThrow(()->new ResourceNotFoundException("Passenger not found with email: "+passengerEmail));
         Driver driver=driverService.findNearestDriver(startLongitude,startLatitude);
         if(driver==null){
-            throw new RuntimeException("No available drivers at the moment.");
+            throw new ResourceNotFoundException("No available drivers");
         }
         Ride ride=new Ride();
         ride.setPassenger(passenger);
@@ -54,18 +47,19 @@ public class RideService {
         ride.setFare(fare);
         ride.setStatus(RideStatus.REQUESTED);
         return rideRepository.save(ride);
-
     }
     @Transactional
-    public Ride handleRideAction(long rideId, long driverId, RideAction rideAction){
+    public Ride handleRideAction(long rideId, RideAction rideAction){
+        Authentication auth=SecurityContextHolder.getContext().getAuthentication();
+        String email=auth.getName();
+        Driver driver =driverRepository.findByEmail(auth.getName()).orElseThrow(()->new RuntimeException("No Driver is found"));
         Ride ride=getRideById(rideId);
         if(ride.getDriver()==null){
             throw new IllegalStateException("Ride has No driver assigned ");
         }
-        if(!ride.getDriver().getId().equals(driverId)){
+        if(!ride.getDriver().getId().equals(driver.getId())){
             throw new IllegalStateException("This driver is not assigned to this ride");
         }
-        Driver driver =ride.getDriver();
         switch (rideAction){
             case DRIVER_ACCEPT :
                 if(ride.getStatus()!= Ride.RideStatus.REQUESTED){
@@ -76,10 +70,11 @@ public class RideService {
                 driverRepository.save(driver);
                 break;
             case DRIVER_REJECT:
-                if(ride.getStatus()!= Ride.RideStatus.REQUESTED){
+                if(ride.getStatus()!= RideStatus.REQUESTED){
                     throw new IllegalStateException("Ride can only be rejected when status is requested");
                 }
-                ride.setStatus(RideStatus.CANCELLED);
+                ride.setStatus(RideStatus.REQUESTED);
+                ride.setDriver(null);
                 driver.setAvailabilityStatus(Driver.AvailabilityStatus.AVAILABLE);
                 driverRepository.save(driver);
                 break;
@@ -109,7 +104,17 @@ public class RideService {
         }
         return rideRepository.save(ride);
     }
-
+    public Ride cancelRideByPassenger(Long rideId){
+        Authentication auth=SecurityContextHolder.getContext().getAuthentication();
+        Ride ride=getRideById(rideId);
+        if(!ride.getPassenger().getEmail().equals(auth.getName())){
+            throw new IllegalStateException("You are not authorised to process this request");
+        }
+        if(ride.getStatus()==RideStatus.COMPLETED){
+            throw new IllegalStateException("Ride Is Already Completed");
+        }
+        return updateRideStatus(ride,RideStatus.CANCELLED);
+    }
     public List<Ride> getAllRides() {
         return rideRepository.findAll();
     }
@@ -124,33 +129,24 @@ public class RideService {
         existingRide.setStartLatitude(updatedData.getStartLatitude());
         existingRide.setEndLatitude(updatedData.getEndLatitude());
         existingRide.setEndLongitude(updatedData.getEndLongitude());
-        if (updatedData.getStatus() != null) {
-            existingRide.setStatus(updatedData.getStatus());
-        }
-
         existingRide.setFare(updatedData.getFare());
-
         return rideRepository.save(existingRide);
     }
-
-    public Ride updateRideStatus(Long rideId, RideStatus newStatus) {
-        Ride ride = getRideById(rideId);
+    public Ride updateRideStatus(Ride ride, RideStatus newStatus) {
         if (newStatus == null) {
             throw new IllegalArgumentException("Status cannot be null");
         }
         if (ride.getStatus() != newStatus) {
             ride.setStatus(newStatus);
-            if (newStatus == RideStatus.COMPLETED) {
+            if (newStatus == RideStatus.COMPLETED||newStatus==RideStatus.CANCELLED) {
                 Driver driver = ride.getDriver();
                 if (driver != null) {
                     driver.setAvailabilityStatus(AvailabilityStatus.AVAILABLE);
                     driverRepository.save(driver);
                 }
             }
-
             return rideRepository.save(ride);
         }
-
         return ride;
     }
     public void deleteRide(Long id) {
@@ -160,30 +156,16 @@ public class RideService {
             driver.setAvailabilityStatus(AvailabilityStatus.AVAILABLE);
             driverRepository.save(driver);
         }
-
         rideRepository.delete(ride);
     }
-
-    public List<Ride> getRideHistory() {
+    public List<Ride> getPassengerRideHistory() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        UserDetailsImpl user = (UserDetailsImpl) authentication.getPrincipal();
-
-        String email = user.getUsername();
-        String role = user.getRole();
-
-        if ("PASSENGER".equals(role)) {
-            return rideRepository.findByPassengerEmail(email);
-        }
-
-        if ("DRIVER".equals(role)) {
-            return rideRepository.findByDriverEmail(email);
-        }
-
-        return List.of();
+        String email = authentication.getName();
+        return rideRepository.findByPassengerEmail(email);
     }
-
-
-    public List<Ride> getDriverRideHistory(Long driverId) {
-        return rideRepository.findByDriverId(driverId);
+    public List<Ride> getDriverRideHistory() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        return rideRepository.findByDriverEmail(email);
     }
 }

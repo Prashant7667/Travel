@@ -11,5 +11,4 @@ public interface RideRepository extends JpaRepository<Ride, Long> {
 
     List<Ride> findByDriverEmail(String email);
 
-    List<Ride> findByDriverId(Long driverId);
 }
