@@ -21,7 +21,6 @@ public class Passenger {
     private String name;
     @Column(unique = true,nullable = false)
     private String email;
-    @JsonIgnore
     private String password;
     private String phoneNumber;
     private Double avgRating=0.0;

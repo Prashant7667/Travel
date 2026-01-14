@@ -60,6 +60,6 @@ public class AuthController {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
 
         String jwt = jwtUtils.generateToken(userDetails.getUsername(),userDetails.getRole());
-        return ResponseEntity.ok(Map.of("token","Bearer: "+jwt,"role",userDetails.getRole()));
+        return ResponseEntity.ok(Map.of("token",jwt,"role",userDetails.getRole()));
     }
 }

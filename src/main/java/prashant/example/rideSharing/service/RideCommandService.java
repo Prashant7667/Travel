@@ -9,6 +9,8 @@ import prashant.example.rideSharing.model.Ride;
 import prashant.example.rideSharing.repository.DriverRepository;
 import prashant.example.rideSharing.repository.PassengerRepository;
 import prashant.example.rideSharing.repository.RideRepository;
+import prashant.example.rideSharing.websocket.RideBroadcastService;
+
 @Service
 public class RideCommandService {
     private final RideRepository rideRepository;
@@ -16,13 +18,15 @@ public class RideCommandService {
     private final PassengerRepository passengerRepository;
     private final DriverService driverService;
     private final RideQueryService rideQueryService;
+    private final RideBroadcastService rideBroadcastService;
 
-    RideCommandService(RideRepository rideRepository, DriverRepository driverRepository, PassengerRepository passengerRepository,DriverService driverService,RideQueryService rideQueryService){
+    RideCommandService(RideRepository rideRepository, DriverRepository driverRepository, PassengerRepository passengerRepository,DriverService driverService,RideQueryService rideQueryService,RideBroadcastService rideBroadcastService){
         this.rideRepository=rideRepository;
         this.driverRepository=driverRepository;
         this.passengerRepository=passengerRepository;
         this.driverService=driverService;
         this.rideQueryService=rideQueryService;
+        this.rideBroadcastService=rideBroadcastService;
     }
 
     public Ride requestRide(double  startLongitude, double startLatitude, double  endLongitude, double endLatitude, Double fare){
@@ -43,7 +47,9 @@ public class RideCommandService {
         ride.setEndLatitude(endLatitude);
         ride.setFare(fare);
         ride.setStatus(Ride.RideStatus.REQUESTED);
-        return rideRepository.save(ride);
+        Ride savedRide= rideRepository.save(ride);
+        rideBroadcastService.broadcastRide(ride);
+        return savedRide;
     }
     public Ride updateRideStatus(Ride ride, Ride.RideStatus newStatus) {
         if (newStatus == null) {

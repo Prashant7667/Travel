@@ -23,7 +23,10 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
         this.customUserDetailsService = customUserDetailsService;
     }
 
+
+
     @Override
+
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
@@ -31,6 +34,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
 
         // 1) Check the Authorization header
         String authHeader = request.getHeader("Authorization");
+        System.out.println("AUTH HEADER >>> " + request.getHeader("Authorization"));
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             // No JWT in header; just continue the chain (maybe endpoint is permitAll)
             filterChain.doFilter(request, response);

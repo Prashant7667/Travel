@@ -70,14 +70,14 @@ public class RideController {
         Ride cancelRide=rideCommandService.cancelRideByPassenger(rideId);
         return ResponseEntity.ok(cancelRide);
     }
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<Ride>> getAllRides() {
         List<Ride>allRides= rideQueryService.getAllRides();
         return ResponseEntity.ok(allRides);
 
     }
-    @PreAuthorize("hasRole('ADMIN')")
+   // @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<Ride> getRideById(@PathVariable Long id) {
         Ride ride = rideQueryService.getRideById(id);
