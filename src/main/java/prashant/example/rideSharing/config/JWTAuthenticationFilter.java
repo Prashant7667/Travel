@@ -22,7 +22,11 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
         this.jwtUtils = jwtUtils;
         this.customUserDetailsService = customUserDetailsService;
     }
+    @Override
 
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        return request.getRequestURI().startsWith("/ws");
+    }
 
 
     @Override
@@ -33,8 +37,8 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         // 1) Check the Authorization header
+        System.out.println("request -- "+ request.getRequestURI());
         String authHeader = request.getHeader("Authorization");
-        System.out.println("AUTH HEADER >>> " + request.getHeader("Authorization"));
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             // No JWT in header; just continue the chain (maybe endpoint is permitAll)
             filterChain.doFilter(request, response);
