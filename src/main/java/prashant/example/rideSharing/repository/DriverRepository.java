@@ -12,7 +12,7 @@ public interface DriverRepository extends JpaRepository<Driver,Long>{
     @Query(
             value = """
         SELECT *
-        FROM driver d
+        FROM drivers d
         WHERE d.availability_status = 'AVAILABLE'
           AND d.latitude BETWEEN :minLat AND :maxLat
           AND d.longitude BETWEEN :minLon AND :maxLon
