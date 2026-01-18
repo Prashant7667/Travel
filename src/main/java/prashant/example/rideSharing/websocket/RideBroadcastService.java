@@ -4,7 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
+import prashant.example.rideSharing.model.Driver;
 import prashant.example.rideSharing.model.Ride;
+
+import java.io.IOException;
+import java.util.List;
 
 @Service
 public class RideBroadcastService {
@@ -14,6 +18,19 @@ public class RideBroadcastService {
 
     public RideBroadcastService(DriverSessionRegistry registry) {
         this.registry = registry;
+    }
+    public void broadcastRidetoNearByDrivers(Ride ride, List<Driver> drivers){
+        for(Driver driver:drivers){
+            WebSocketSession session=registry.getAll().get(driver.getEmail());
+            if(session==null || !session.isOpen())continue;
+            try{
+                String payload=objectMapper.writeValueAsString(ride);
+                session.sendMessage(new TextMessage(payload));
+            } catch (Exception e){
+                registry.remove(driver.getEmail());
+            }
+        }
+
     }
 
     public void broadcastRide(Ride ride) {

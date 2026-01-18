@@ -14,13 +14,11 @@ import prashant.example.rideSharing.repository.RideRepository;
 public class DriverAssignmentService {
     private final RideRepository rideRepository;
     private final DriverRepository driverRepository;
-    private final PassengerRepository passengerRepository;
     private final DriverService driverService;
     private final RideQueryService rideQueryService;
-    DriverAssignmentService(RideRepository rideRepository, DriverRepository driverRepository, PassengerRepository passengerRepository,DriverService driverService,RideQueryService rideQueryService){
+    DriverAssignmentService(RideRepository rideRepository, DriverRepository driverRepository,DriverService driverService,RideQueryService rideQueryService){
         this.rideRepository=rideRepository;
         this.driverRepository=driverRepository;
-        this.passengerRepository=passengerRepository;
         this.driverService=driverService;
         this.rideQueryService=rideQueryService;
     }

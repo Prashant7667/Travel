@@ -78,9 +78,7 @@ public class DriverService {
         return driverRepository.save(driver);
     }
 
-    public Driver findNearestDriver(double startLongitude, double startLatitude){
-        double radiusKm = 5.0; // configurable later
-
+    public List<Driver> findNearestDrivers(double startLongitude, double startLatitude,double radiusKm,int limit){
         double latDelta = radiusKm / 111.0;
         double lonDelta = radiusKm / (111.0 * Math.cos(Math.toRadians(startLatitude)));
 
@@ -89,10 +87,7 @@ public class DriverService {
         double minLon = startLongitude - lonDelta;
         double maxLon = startLongitude + lonDelta;
 
-        Driver driver = driverRepository.findNearestDriver(startLatitude,startLongitude,minLat,maxLat, minLon,maxLon);
-        if(driver==null){
-            throw new ResourceNotFoundException("No Available Drivers");
-        }
-        return driver;
+         return driverRepository.findNearestDrivers(startLatitude,startLongitude,minLat,maxLat, minLon,maxLon,limit);
+
     }
 }

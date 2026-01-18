@@ -11,6 +11,8 @@ import prashant.example.rideSharing.repository.PassengerRepository;
 import prashant.example.rideSharing.repository.RideRepository;
 import prashant.example.rideSharing.websocket.RideBroadcastService;
 
+import java.util.List;
+
 @Service
 public class RideCommandService {
     private final RideRepository rideRepository;
@@ -34,21 +36,18 @@ public class RideCommandService {
         String passengerEmail=authentication.getName();
         Passenger passenger=passengerRepository.findByEmail(passengerEmail)
                 .orElseThrow(()->new ResourceNotFoundException("Passenger not found with email: "+passengerEmail));
-        Driver driver=driverService.findNearestDriver(startLongitude,startLatitude);
-        if(driver==null){
-            throw new ResourceNotFoundException("No available drivers");
-        }
         Ride ride=new Ride();
         ride.setPassenger(passenger);
-        ride.setDriver(driver);
+        ride.setDriver(null);
         ride.setStartLongitude(startLongitude);
         ride.setStartLatitude(startLatitude);
         ride.setEndLongitude(endLongitude);
         ride.setEndLatitude(endLatitude);
         ride.setFare(fare);
+        List<Driver> drivers=driverService.findNearestDrivers(startLongitude,startLatitude,5.0,5);
         ride.setStatus(Ride.RideStatus.REQUESTED);
         Ride savedRide= rideRepository.save(ride);
-        rideBroadcastService.broadcastRide(ride);
+        rideBroadcastService.broadcastRidetoNearByDrivers(savedRide,drivers);
         return savedRide;
     }
     public Ride updateRideStatus(Ride ride, Ride.RideStatus newStatus) {
