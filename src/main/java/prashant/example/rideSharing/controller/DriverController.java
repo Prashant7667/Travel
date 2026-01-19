@@ -52,6 +52,12 @@ public class DriverController {
         return ResponseEntity.noContent().build();
     }
     @PreAuthorize("hasRole('DRIVER')")
+    @GetMapping("/me")
+    public ResponseEntity<Driver> getCurrentDriver() {
+        Driver currentDriver=driverService.getCurrentDriver();
+        return ResponseEntity.ok(currentDriver);
+    }
+    @PreAuthorize("hasRole('DRIVER')")
     @PatchMapping("/me/availability")
     public ResponseEntity<Driver> updateDriverAvailability(@RequestParam String status) {
         Driver.AvailabilityStatus availabilityStatus = Driver.AvailabilityStatus.valueOf(status.toUpperCase());

@@ -1,5 +1,6 @@
 package prashant.example.rideSharing.service;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;  // <-- Import this
 import org.springframework.stereotype.Service;
@@ -24,7 +25,10 @@ public class DriverService {
         }
         return driverRepository.save(driver);
     }
-
+    public Driver getCurrentDriver(){
+        Authentication auth=SecurityContextHolder.getContext().getAuthentication();
+        return getDriverByEmail(auth.getName());
+    }
     public Driver getDriverByEmail(String email) {
         return driverRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Driver not found with email: " + email));
