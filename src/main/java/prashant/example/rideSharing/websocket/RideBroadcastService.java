@@ -6,8 +6,6 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import prashant.example.rideSharing.model.Driver;
 import prashant.example.rideSharing.model.Ride;
-
-import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -31,16 +29,5 @@ public class RideBroadcastService {
             }
         }
 
-    }
-
-    public void broadcastRide(Ride ride) {
-        registry.getAll().forEach((email, session) -> {
-            try {
-                if (session.isOpen()) {
-                    String payload = objectMapper.writeValueAsString(ride);
-                    session.sendMessage(new TextMessage(payload));
-                }
-            } catch (Exception ignored) {}
-        });
     }
 }

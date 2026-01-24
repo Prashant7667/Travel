@@ -4,11 +4,13 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import prashant.example.rideSharing.exception.ResourceNotFoundException;
+import prashant.example.rideSharing.exception.DriverUnavailableException;
+import prashant.example.rideSharing.exception.ExternalServiceException;
+import prashant.example.rideSharing.exception.RideStateException;
 import prashant.example.rideSharing.model.Driver;
 import prashant.example.rideSharing.model.Ride;
 import prashant.example.rideSharing.model.RideAction;
 import prashant.example.rideSharing.repository.DriverRepository;
-import prashant.example.rideSharing.repository.PassengerRepository;
 import prashant.example.rideSharing.repository.RideRepository;
 @Service
 public class DriverAssignmentService {
@@ -40,15 +42,15 @@ public class DriverAssignmentService {
         Driver driver = driverRepository.findByEmail(auth.getName()).orElseThrow(() -> new ResourceNotFoundException("No Driver is found"));
         Ride ride = rideQueryService.getRideById(rideId);
         if (ride.getDriver() == null) {
-            throw new IllegalStateException("Ride has No driver assigned ");
+            throw new RideStateException("Ride has No driver assigned ");
         }
         if (!ride.getDriver().getId().equals(driver.getId())) {
-            throw new IllegalStateException("This driver is not assigned to this ride");
+            throw new DriverUnavailableException("This driver is not assigned to this ride");
         }
         switch (rideAction) {
             case DRIVER_REJECT:
                 if (ride.getStatus() != Ride.RideStatus.REQUESTED) {
-                    throw new IllegalStateException("Ride can only be rejected when status is requested");
+                    throw new RideStateException("Ride can only be rejected when status is requested");
                 }
                 ride.setStatus(Ride.RideStatus.REQUESTED);
                 ride.setDriver(null);
@@ -57,7 +59,7 @@ public class DriverAssignmentService {
                 break;
             case START_RIDE:
                 if (ride.getStatus() != Ride.RideStatus.ACCEPTED) {
-                    throw new IllegalStateException("Ride cannot be started if it is not accepted by driver");
+                    throw new RideStateException("Ride cannot be started if it is not accepted by driver");
                 }
                 ride.setStatus(Ride.RideStatus.IN_PROGRESS);
                 driver.setAvailabilityStatus(Driver.AvailabilityStatus.UNAVAILABLE);
@@ -65,7 +67,7 @@ public class DriverAssignmentService {
                 break;
             case COMPLETE_RIDE:
                 if (ride.getStatus() != Ride.RideStatus.IN_PROGRESS) {
-                    throw new IllegalStateException("Ride can't be completed when status is not in progress");
+                    throw new RideStateException("Ride can't be completed when status is not in progress");
                 }
                 ride.setStatus(Ride.RideStatus.COMPLETED);
                 driver.setAvailabilityStatus(Driver.AvailabilityStatus.AVAILABLE);
@@ -73,7 +75,7 @@ public class DriverAssignmentService {
                 break;
             case CANCEL_RIDE:
                 if (ride.getStatus() == Ride.RideStatus.COMPLETED || ride.getStatus() == Ride.RideStatus.CANCELLED) {
-                    throw new IllegalStateException("Ride is already finished");
+                    throw new RideStateException("Ride is already finished");
                 }
                 ride.setStatus(Ride.RideStatus.CANCELLED);
                 driver.setAvailabilityStatus(Driver.AvailabilityStatus.AVAILABLE);

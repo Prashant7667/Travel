@@ -1,8 +1,7 @@
 package prashant.example.rideSharing.service;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;  // <-- Import this
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import prashant.example.rideSharing.repository.DriverRepository;
 import prashant.example.rideSharing.model.Driver;

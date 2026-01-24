@@ -2,6 +2,7 @@ package prashant.example.rideSharing.service;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import prashant.example.rideSharing.exception.BusinessRuleViolationException;
 import prashant.example.rideSharing.exception.ResourceNotFoundException;
 import prashant.example.rideSharing.model.Driver;
 import prashant.example.rideSharing.model.Passenger;
@@ -71,10 +72,10 @@ public class RideCommandService {
         Authentication auth=SecurityContextHolder.getContext().getAuthentication();
         Ride ride=rideQueryService.getRideById(rideId);
         if(!ride.getPassenger().getEmail().equals(auth.getName())){
-            throw new IllegalStateException("You are not authorised to process this request");
+            throw new BusinessRuleViolationException("You are not authorised to process this request");
         }
         if(ride.getStatus()== Ride.RideStatus.COMPLETED){
-            throw new IllegalStateException("Ride Is Already Completed");
+            throw new BusinessRuleViolationException("Ride Is Already Completed");
         }
         return updateRideStatus(ride, Ride.RideStatus.CANCELLED);
     }
